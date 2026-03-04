@@ -187,3 +187,19 @@ Typographical Errors
 Unused Variables
 
 Code With No Effects
+
+🛠️ Technologies Used
+
+Component	                 Technology
+
+Backend	                Python
+
+Web Framework	                    Flask
+
+Vulnerability Detection	          Regex-based rule engine
+
+Frontend	            HTML
+
+Styling	                          CSS
+
+Security Standard	                   SWC Registry
