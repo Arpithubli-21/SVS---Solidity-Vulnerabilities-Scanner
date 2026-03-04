@@ -202,3 +202,15 @@ Frontend - HTML
 Styling - CSS
 
 Security Standard - SWC Registry
+
+⚠️ Disclaimer
+
+This tool performs static pattern-based analysis and should not be considered a complete smart contract audit.
+
+For production-grade contracts, always combine automated scanning with:
+
+Manual security review
+
+Formal verification
+
+Professional smart contract audits
