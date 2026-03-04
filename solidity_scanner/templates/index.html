@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solidity Vulnerability Scanner</title>
+  <meta name="description"
+    content="Upload a Solidity smart contract and instantly detect known security vulnerabilities.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+
+<body>
+
+  <!-- ── NAV ─────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-text">SolidityScanner</span>
+      </div>
+      <span class="nav-tag">Smart Contract Auditor</span>
+    </div>
+  </nav>
+
+  <!-- ── HERO ─────────────────────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="container">
+      <div class="hero-badge">🔒 Security Analysis Tool</div>
+      <h1 class="hero-title">Solidity<br><span class="gradient-text">Vulnerability Scanner</span></h1>
+      <p class="hero-subtitle">
+        Upload your <code>.sol</code> smart contract and get an instant security
+        audit powered by all <strong>37 SWC-registered</strong> vulnerability detection rules.
+      </p>
+
+      <!-- ── STAT PILLS ────────────────── -->
+      <div class="stat-pills">
+        <div class="stat-pill"><span class="pill-num">37</span><span class="pill-label">Rules</span></div>
+        <div class="stat-pill"><span class="pill-num">SWC</span><span class="pill-label">Indexed</span></div>
+        <div class="stat-pill"><span class="pill-num">3</span><span class="pill-label">Severity Levels</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ─────────────────────────────────────────────────── -->
+  <main class="container main-content">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+      <span class="alert-icon">{% if category == 'error' %}⚠️{% else %}✅{% endif %}</span>
+      {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- ── UPLOAD CARD ─────────────────────── -->
+    <section class="card upload-card">
+      <div class="card-header">
+        <h2 class="card-title">Analyse Contract</h2>
+        <p class="card-subtitle">Upload a <code>.sol</code> file or paste code directly · Max 10 MB</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="input-tabs">
+        <button class="tab-btn active" id="tabFile" type="button" onclick="switchTab('file')">
+          📂 Upload File
+        </button>
+        <button class="tab-btn" id="tabText" type="button" onclick="switchTab('text')">
+          📋 Paste Code
+        </button>
+      </div>
+
+      <!-- ── Tab 1: File Upload ── -->
+      <form id="formFile" action="/scan" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="input_mode" value="file">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">📄</div>
+          <p class="drop-text">Drag &amp; drop your <code>.sol</code> file here</p>
+          <p class="drop-sub">or</p>
+          <label for="solidity_file" class="btn btn-outline">Browse File</label>
+          <input type="file" id="solidity_file" name="solidity_file" accept=".sol" class="file-input" required />
+          <p class="file-name-display" id="fileNameDisplay">No file chosen</p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="scanBtnFile">
+          <span class="btn-text">🔍 Scan for Vulnerabilities</span>
+          <span class="btn-loader hidden" id="btnLoaderFile">Scanning…</span>
+        </button>
+      </form>
+
+      <!-- ── Tab 2: Paste Code ── -->
+      <form id="formText" action="/scan" method="POST" class="hidden">
+        <input type="hidden" name="input_mode" value="text">
+        <div class="paste-zone">
+          <div class="paste-header">
+            <span class="paste-lang-badge">Solidity</span>
+            <button type="button" class="btn-clear" id="clearBtn" onclick="clearPaste()">✕ Clear</button>
+          </div>
+          <textarea id="code_text" name="code_text" class="code-textarea" placeholder="// Paste your Solidity code here...
+pragma solidity ^0.8.0;
+
+contract MyContract {
+    ...
+}" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+          <div class="paste-footer">
+            <span class="char-count" id="charCount">0 characters</span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="scanBtnText">
+          <span class="btn-text">🔍 Scan Pasted Code</span>
+          <span class="btn-loader hidden" id="btnLoaderText">Scanning…</span>
+        </button>
+      </form>
+    </section>
+
+
+    <!-- ── RESULTS ──────────────────────────── -->
+    {% if results is defined %}
+    <section class="card results-card" id="resultsSection">
+
+      <!-- Header -->
+      <div class="results-header">
+        <div>
+          <h2 class="card-title">Scan Results</h2>
+          <p class="card-subtitle">File: <code>{{ filename }}</code></p>
+        </div>
+
+        {% if results.safe %}
+        <div class="status-badge status-safe">✅ No Issues Found</div>
+        {% else %}
+        <div class="status-badge status-warn">⚠️ {{ results.total }} Issue{{ 's' if results.total != 1 }} Detected</div>
+        {% endif %}
+      </div>
+
+      <!-- Summary Row -->
+      <div class="summary-row">
+        <div class="summary-box box-high">
+          <span class="summary-num">{{ results.summary.High }}</span>
+          <span class="summary-label">High</span>
+        </div>
+        <div class="summary-box box-medium">
+          <span class="summary-num">{{ results.summary.Medium }}</span>
+          <span class="summary-label">Medium</span>
+        </div>
+        <div class="summary-box box-low">
+          <span class="summary-num">{{ results.summary.Low }}</span>
+          <span class="summary-label">Low</span>
+        </div>
+        <div class="summary-box box-total">
+          <span class="summary-num">{{ results.total }}</span>
+          <span class="summary-label">Total</span>
+        </div>
+      </div>
+
+      {% if results.safe %}
+      <div class="safe-banner">
+        <span class="safe-icon">🛡️</span>
+        <div>
+          <strong>Contract looks safe!</strong>
+          <p>No known vulnerabilities were detected by the scanner. Always perform a full manual audit before deploying
+            to mainnet.</p>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Findings list -->
+      <div class="findings-list">
+        {% for finding in results.findings %}
+        <div class="finding-item finding-{{ finding.severity | lower }}">
+          <div class="finding-header">
+            <div class="finding-meta">
+              <span class="swc-id">{{ finding.id }}</span>
+              <span class="finding-name">{{ finding.name }}</span>
+            </div>
+            <span class="severity-badge badge-{{ finding.severity | lower }}">{{ finding.severity }}</span>
+          </div>
+
+          <p class="finding-desc">{{ finding.description }}</p>
+
+          <!-- Occurrences -->
+          <div class="occurrences">
+            <p class="occ-label">📍 Found on line{{ 's' if finding.occurrences|length > 1 }}:</p>
+            {% for occ in finding.occurrences %}
+            <div class="code-line">
+              <span class="line-num">L{{ occ.line }}</span>
+              <code class="line-code">{{ occ.content }}</code>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Recommendation -->
+          <div class="recommendation">
+            <span class="rec-label">💡 Recommendation</span>
+            <p>{{ finding.recommendation }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% endif %}
+
+      <!-- Source Preview -->
+      {% if source_preview %}
+      <details class="source-details">
+        <summary>View Source Preview (first 3000 chars)</summary>
+        <pre class="source-code">{{ source_preview }}</pre>
+      </details>
+      {% endif %}
+
+    </section>
+    {% endif %}
+
+    <!-- ── RULES REFERENCE ─────────────────── -->
+    <section class="card rules-card">
+      <div class="card-header">
+        <h2 class="card-title">Detection Rules <span class="rules-count-badge">37 Total</span></h2>
+        <p class="card-subtitle">Full SWC Registry coverage — SWC-100 through SWC-136</p>
+      </div>
+
+      <p class="rules-section-label">🔴 High Severity</p>
+      <div class="rules-grid">
+        <div class="rule-chip chip-high">SWC-101 · Integer Overflow/Underflow</div>
+        <div class="rule-chip chip-high">SWC-105 · Unprotected Ether Withdrawal</div>
+        <div class="rule-chip chip-high">SWC-106 · Unprotected Self-Destruct</div>
+        <div class="rule-chip chip-high">SWC-107 · Reentrancy</div>
+        <div class="rule-chip chip-high">SWC-109 · Uninitialized Storage Pointer</div>
+        <div class="rule-chip chip-high">SWC-112 · Delegatecall to Untrusted Callee</div>
+        <div class="rule-chip chip-high">SWC-115 · tx.origin Authentication</div>
+        <div class="rule-chip chip-high">SWC-118 · Incorrect Constructor Name</div>
+        <div class="rule-chip chip-high">SWC-120 · Weak Randomness</div>
+        <div class="rule-chip chip-high">SWC-121 · Signature Replay Attack</div>
+        <div class="rule-chip chip-high">SWC-124 · Arbitrary Storage Write</div>
+        <div class="rule-chip chip-high">SWC-127 · Arbitrary Jump (Function Variable)</div>
+        <div class="rule-chip chip-high">SWC-130 · RLO Hidden Character</div>
+        <div class="rule-chip chip-high">SWC-136 · Private Data On-Chain</div>
+      </div>
+
+      <p class="rules-section-label">🟡 Medium Severity</p>
+      <div class="rules-grid">
+        <div class="rule-chip chip-medium">SWC-100 · Function Default Visibility</div>
+        <div class="rule-chip chip-medium">SWC-102 · Outdated Compiler Version</div>
+        <div class="rule-chip chip-medium">SWC-104 · Unchecked Call Return Value</div>
+        <div class="rule-chip chip-medium">SWC-110 · Assert Violation</div>
+        <div class="rule-chip chip-medium">SWC-113 · DoS with Failed Call</div>
+        <div class="rule-chip chip-medium">SWC-114 · Transaction Order Dependence</div>
+        <div class="rule-chip chip-medium">SWC-116 · Block Timestamp Dependence</div>
+        <div class="rule-chip chip-medium">SWC-117 · Signature Malleability</div>
+        <div class="rule-chip chip-medium">SWC-119 · Shadowing State Variables</div>
+        <div class="rule-chip chip-medium">SWC-122 · Improper Signature Verification</div>
+        <div class="rule-chip chip-medium">SWC-123 · Requirement Violation</div>
+        <div class="rule-chip chip-medium">SWC-125 · Incorrect Inheritance Order</div>
+        <div class="rule-chip chip-medium">SWC-126 · Insufficient Gas Griefing</div>
+        <div class="rule-chip chip-medium">SWC-128 · DoS with Block Gas Limit</div>
+        <div class="rule-chip chip-medium">SWC-132 · Unexpected Ether Balance</div>
+        <div class="rule-chip chip-medium">SWC-133 · Hash Collision (encodePacked)</div>
+        <div class="rule-chip chip-medium">SWC-134 · Hardcoded Gas Amount</div>
+      </div>
+
+      <p class="rules-section-label">🟢 Low Severity</p>
+      <div class="rules-grid">
+        <div class="rule-chip chip-low">SWC-103 · Floating Pragma</div>
+        <div class="rule-chip chip-low">SWC-108 · State Variable Default Visibility</div>
+        <div class="rule-chip chip-low">SWC-111 · Deprecated Solidity Functions</div>
+        <div class="rule-chip chip-low">SWC-129 · Typographical Error</div>
+        <div class="rule-chip chip-low">SWC-131 · Unused Variables</div>
+        <div class="rule-chip chip-low">SWC-135 · Code With No Effects</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ────────────────────────────── -->
+  <footer class="footer">
+    <p>SolidityScanner · For educational &amp; research purposes only · Always perform a manual audit</p>
+  </footer>
+
+  <script>
+    // ── Tab switching ──────────────────────────────────────────────────────
+    function switchTab(mode) {
+      const formFile = document.getElementById('formFile');
+      const formText = document.getElementById('formText');
+      const tabFile = document.getElementById('tabFile');
+      const tabText = document.getElementById('tabText');
+
+      if (mode === 'file') {
+        formFile.classList.remove('hidden');
+        formText.classList.add('hidden');
+        tabFile.classList.add('active');
+        tabText.classList.remove('active');
+      } else {
+        formText.classList.remove('hidden');
+        formFile.classList.add('hidden');
+        tabText.classList.add('active');
+        tabFile.classList.remove('active');
+      }
+    }
+
+    // ── File form: drag & drop + file name ────────────────────────────────
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('solidity_file');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        fileNameDisplay.textContent = fileInput.files[0].name;
+        dropZone.classList.add('has-file');
+      }
+    });
+
+    ['dragover', 'dragenter'].forEach(evt => {
+      dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    });
+    ['dragleave', 'dragend', 'drop'].forEach(evt => {
+      dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    });
+    dropZone.addEventListener('drop', e => {
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        fileInput.files = files;
+        fileNameDisplay.textContent = files[0].name;
+        dropZone.classList.add('has-file');
+      }
+    });
+
+    // ── File form: loading state ──────────────────────────────────────────
+    document.getElementById('formFile').addEventListener('submit', () => {
+      const btn = document.getElementById('scanBtnFile');
+      btn.querySelector('.btn-text').classList.add('hidden');
+      btn.querySelector('.btn-loader').classList.remove('hidden');
+      btn.disabled = true;
+    });
+
+    // ── Paste form: char counter + loading state ──────────────────────────
+    const textarea = document.getElementById('code_text');
+    const charCount = document.getElementById('charCount');
+
+    textarea.addEventListener('input', () => {
+      const n = textarea.value.length;
+      charCount.textContent = n.toLocaleString() + ' character' + (n !== 1 ? 's' : '');
+    });
+
+    document.getElementById('formText').addEventListener('submit', () => {
+      const btn = document.getElementById('scanBtnText');
+      btn.querySelector('.btn-text').classList.add('hidden');
+      btn.querySelector('.btn-loader').classList.remove('hidden');
+      btn.disabled = true;
+    });
+
+    function clearPaste() {
+      textarea.value = '';
+      charCount.textContent = '0 characters';
+      textarea.focus();
+    }
+
+    // ── Smooth-scroll to results if present ──────────────────────────────
+    const results = document.getElementById('resultsSection');
+    if (results) results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  </script>
+</body>
+
+</html>
