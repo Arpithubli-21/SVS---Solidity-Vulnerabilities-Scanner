@@ -190,16 +190,15 @@ Code With No Effects
 
 🛠️ Technologies Used
 
-Component	                 Technology
 
-Backend	                Python
+Backend - Python
 
-Web Framework	                    Flask
+Web Framework - Flask
 
-Vulnerability Detection	          Regex-based rule engine
+Vulnerability Detection - Regex-based rule engine
 
-Frontend	            HTML
+Frontend - HTML
 
-Styling	                          CSS
+Styling - CSS
 
-Security Standard	                   SWC Registry
+Security Standard - SWC Registry
