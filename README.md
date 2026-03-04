@@ -11,9 +11,13 @@ This project provides an automated vulnerability detection system that analyzes 
 The scanner processes the contract code, detects vulnerable patterns, classifies them based on severity, and generates a structured security report including:
 
 Vulnerability type
+
 SWC ID
+
 Severity level
+
 Line numbers where the vulnerability occurs
+
 Recommended mitigation steps
 
 This tool helps developers identify and fix security flaws early in the development process.
@@ -24,56 +28,76 @@ This tool helps developers identify and fix security flaws early in the developm
 The project provides a modern web interface designed for easy interaction and quick security analysis.
 
 Landing Page
+
 The homepage introduces the Solidity Vulnerability Scanner and highlights its capabilities.
 
 Key information displayed:
 
 37 vulnerability detection rules
+
 SWC registry coverage
+
 Three severity levels (High, Medium, Low)
 
 This gives users a quick understanding of the tool's detection capability.
 
 
 Smart Contract Analysis
+
 Users can analyze Solidity code in two ways:
 
 1️⃣ Upload a Solidity File
+
 Users can upload a .sol file directly from their system.
 
 Features include:
+
 Drag and drop support
+
 File browser selection
+
 Maximum file size limit of 10 MB
 
 Once the file is uploaded, the scanner processes the contract and runs vulnerability detection.
 
 2️⃣ Paste Solidity Code
+
 Developers can also paste Solidity code directly into the editor.
 
 The interface provides:
+
 Syntax-styled code input area
+
 Character counter
+
 Clear button for quick reset
 
 After pasting the code, users can click Scan Pasted Code to start the analysis.
 
 🔎 Vulnerability Detection Engine
+
 The backend scanner analyzes the Solidity source code using pattern-based static analysis.
 
 The scanning engine performs the following steps:
+
 Reads the Solidity source code line by line.
+
 Compares each line against predefined vulnerability rules.
+
 Detects matching patterns using regular expressions.
+
 Records the line number and vulnerable code snippet.
+
 Categorizes the vulnerability by severity.
 
 The system currently supports 37 SWC vulnerability rules, covering the range:
+
 SWC-100 → SWC-136
 
 These vulnerabilities are categorized into three severity levels.
 
 🔴 High Severity Vulnerabilities
+
 High severity vulnerabilities represent critical security risks that could allow attackers to steal funds or gain full control over the contract.
 
 Examples detected by the scanner include:
