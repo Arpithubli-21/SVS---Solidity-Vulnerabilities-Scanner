@@ -77,50 +77,89 @@ These vulnerabilities are categorized into three severity levels.
 High severity vulnerabilities represent critical security risks that could allow attackers to steal funds or gain full control over the contract.
 
 Examples detected by the scanner include:
+
 Integer Overflow / Underflow
+
 Unprotected Ether Withdrawal
+
 Unprotected Self-Destruct
+
 Reentrancy
+
 Uninitialized Storage Pointer
+
 Delegatecall to Untrusted Callee
+
 tx.origin Authentication
+
 Incorrect Constructor Name
+
 Weak Randomness
+
 Signature Replay Attack
+
 Arbitrary Storage Write
+
 Arbitrary Jump via Function Variable
+
 RLO Hidden Character Attack
+
 Private Data Stored On-Chain
 
 🟡 Medium Severity Vulnerabilities
+
 Medium severity vulnerabilities can cause unexpected behavior, denial of service, or security weaknesses if exploited.
 
 Examples include:
+
 Function Default Visibility
+
 Outdated Compiler Version
+
 Unchecked Call Return Value
+
 Assert Violation
+
 DoS with Failed Call
+
 Transaction Order Dependence
+
 Block Timestamp Dependence
+
 Signature Malleability
+
 Shadowing State Variables
+
 Improper Signature Verification
+
 Requirement Violation
+
 Incorrect Inheritance Order
+
 Insufficient Gas Griefing
+
 DoS with Block Gas Limit
+
 Unexpected Ether Balance
+
 Hash Collision using encodePacked
+
 Hardcoded Gas Amount
 
 🟢 Low Severity Issues
+
 Low severity findings generally represent best practice violations or code quality issues.
 
 Examples include:
+
 Floating Pragma
+
 State Variable Default Visibility
+
 Deprecated Solidity Functions
+
 Typographical Errors
+
 Unused Variables
+
 Code With No Effects
